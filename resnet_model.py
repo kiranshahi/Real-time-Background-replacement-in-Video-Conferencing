@@ -4,17 +4,17 @@ import pandas as pd
 import tensorflow as tf
 
 from tensorflow.keras.layers import ConvLSTM2D, BatchNormalization, Activation, Conv2DTranspose, Input, Conv2D, Reshape, \
-    concatenate
+    concatenate, Bidirectional
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, CSVLogger
 
 def conv_block(inputs, num_filters):
-    x = ConvLSTM2D(num_filters, 3, padding="same", return_sequences=True)(inputs)
+    x = Conv2D(num_filters, 3, padding="same")(inputs)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
 
-    x = ConvLSTM2D(num_filters, 3, padding="same", return_sequences=False)(x)
+    x = Conv2D(num_filters, 3, padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
 
@@ -31,6 +31,8 @@ def decoder_block(inputs, skip_features, num_filters):
     x = concatenate([x1, x2], axis=1)
 
     # x = Concatenate()([x, skip_features])
+
+    x = Bidirectional(ConvLSTM2D(filters=64, kernel_size=(3, 3), padding='same', return_sequences=False, kernel_initializer='he_normal'), merge_mode="concat")(x)  # clstm1
     x = conv_block(x, num_filters)
     return x
 
@@ -63,17 +65,16 @@ def ResNet_UNET():
     d4 = decoder_block(d3, e1, 3)  ## (512 x 512)
 
     outputs = Conv2D(1, (1, 1), 1, 'same', activation='sigmoid')(d4)
-    mymodel = Model(inputs=inputs, outputs=outputs)
-    return mymodel
+    return Model(inputs=inputs, outputs=outputs)
 
 
 # Hyperparameters
 IMAGE_SIZE = 256
-EPOCHS = 50
+EPOCHS = 5
 BATCH = 15
 LR = 1e-4
-model_path = "resnet_unet.h5"
-csv_path = "resnet_data.csv"
+model_path = "/home/kiran_shahi/dissertation/model/resnet_unet_aug_val.h5"
+csv_path = "/home/kiran_shahi/dissertation/log/resnet_data_aug_val.csv"
 
 model = ResNet_UNET()
 model.compile(
@@ -137,4 +138,4 @@ def tf_dataset(images, masks, batch=30):
 ds = pd.read_csv("image.csv")
 train_dataset = tf_dataset(ds['image'].tolist(), ds['mask'].tolist(), batch=BATCH)
 
-model.fit(train_dataset, epochs=EPOCHS, callbacks=callbacks)
+model.fit(train_dataset, validation_split=0.3, epochs=EPOCHS, callbacks=callbacks)

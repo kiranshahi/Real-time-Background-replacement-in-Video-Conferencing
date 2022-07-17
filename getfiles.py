@@ -3,7 +3,7 @@ import glob
 from pathlib import Path
 import pandas as pd
 
-batch_size = 30
+batch_size = 15
 
 img = '/home/kiran_shahi/dissertation/dataset/image'
 msk = '/home/kiran_shahi/dissertation/dataset/alpha'
