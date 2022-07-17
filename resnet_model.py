@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from tensorflow.keras.layers import ConvLSTM2D, BatchNormalization, Activation, Conv2DTranspose, Input, Conv2D, Reshape, \
     concatenate, Bidirectional
+
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, CSVLogger
@@ -65,8 +66,8 @@ def ResNet_UNET():
     d4 = decoder_block(d3, e1, 3)  ## (512 x 512)
 
     outputs = Conv2D(1, (1, 1), 1, 'same', activation='sigmoid')(d4)
-    return Model(inputs=inputs, outputs=outputs)
 
+    return Model(inputs=inputs, outputs=outputs)
 
 # Hyperparameters
 IMAGE_SIZE = 256
