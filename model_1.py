@@ -92,7 +92,7 @@ IMAGE_SIZE = 256
 EPOCHS = 100
 BATCH = 30
 LR = 1e-4
-model_path = "model.h5"
+model_path = "test_mdl/model.h5"
 csv_path = "data.csv"
 
 opt = tf.keras.optimizers.Nadam(LR)
