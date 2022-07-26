@@ -78,7 +78,7 @@ IMAGE_SIZE = 560
 EPOCHS = 100
 BATCH = 30
 LR = 1e-4
-model_path = "mobilev3_unet.h5"
+model_path = "test_mdl/mobilev3_unet.h5"
 csv_path = "data.csv"
 
 model = get_model()
