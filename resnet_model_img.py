@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 from tensorflow.keras.layers import ConvLSTM2D, BatchNormalization, Activation, Conv2DTranspose, Input, Conv2D, Reshape, \
     concatenate, Bidirectional
@@ -16,7 +17,6 @@ def read_image(path):
     x = cv2.resize(x, (IMAGE_SIZE, IMAGE_SIZE))
     x = x / 255.0
     x = x.astype(np.float32)
-    # (256, 256, 3)
     return x
 
 
@@ -56,6 +56,7 @@ def conv_block(inputs, num_filters):
     x = Conv2D(num_filters, 3, padding="same")(inputs)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
+    x =
     return x
 
 
@@ -66,19 +67,18 @@ def decoder_block(inputs, skip_features, num_filters):
     x2 = Reshape(target_shape=(1, np.int32(row_col_sze), np.int32(row_col_sze), num_filters))(skip_features)
     x = concatenate([x1, x2], axis=1)
 
-    x = Bidirectional(ConvLSTM2D(filters=64, kernel_size=(3, 3), padding='same', return_sequences=False,
-                                 kernel_initializer='he_normal'), merge_mode="concat")(x)  # clstm1
+    x = Bidirectional(ConvLSTM2D(filters=num_filters, kernel_size=(3, 3), padding='same', return_sequences=False, kernel_initializer='he_normal'))(x)
     x = conv_block(x, num_filters)
     return x
 
 
 # Hyperparameters
 IMAGE_SIZE = 256
-EPOCHS = 5
+EPOCHS = 100
 BATCH = 15
 LR = 1e-4
-model_path = "/home/kiran_shahi/dissertation/model/resnet_unet_aug_val.h5"
-csv_path = "/home/kiran_shahi/dissertation/log/resnet_data_aug_val.csv"
+model_path = "/home/kiran_shahi/dissertation/model/resnet_unet_single_frame.h5"
+csv_path = "/home/kiran_shahi/dissertation/log/resnet_unet_single_frame.csv"
 
 
 def resnet_unet():
@@ -103,25 +103,52 @@ def resnet_unet():
     d4 = decoder_block(d3, e1, 3)  ## (512 x 512)
 
     outputs = Conv2D(1, (1, 1), 1, 'same', activation='sigmoid')(d4)
-
     return Model(inputs=inputs, outputs=outputs)
 
 
-ds = pd.read_csv("image.csv")
-train_dataset = tf_dataset(ds['image'].tolist(), ds['mask'].tolist(), batch=BATCH)
 
 model = resnet_unet()
-model.compile( loss="binary_crossentropy", optimizer=tf.keras.optimizers.Adam(LR), metrics=[
+model.compile(loss="binary_crossentropy", optimizer=tf.keras.optimizers.Adam(LR), metrics=[
     tf.keras.metrics.MeanIoU(num_classes=2),
     tf.keras.metrics.Recall(),
     tf.keras.metrics.Precision()
 ])
 
 callbacks = [
-    ModelCheckpoint(model_path, monitor="loss", verbose=1),
-    ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
+    ModelCheckpoint(model_path, monitor="val_loss", verbose=1),
+    ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5),
     CSVLogger(csv_path),
-    EarlyStopping(monitor='loss', patience=10, restore_best_weights=False)
+    EarlyStopping(monitor='val_loss', patience=10)
 ]
 
-model.fit(train_dataset, validation_split=0.3, epochs=EPOCHS, callbacks=callbacks)
+ds = pd.read_csv("image_seg.csv")
+
+
+def load_data(images, masks):
+    train_x, test_x = train_test_split(images, test_size=0.2, random_state=42)
+    train_y, test_y = train_test_split(masks, test_size=0.2, random_state=42)
+    return (train_x, train_y), (test_x, test_y)
+
+
+(train_x, train_y), (test_x, test_y) = load_data(ds['image'].tolist(), ds['mask'].tolist())
+
+train_steps = len(train_x) // BATCH
+if len(train_x) % BATCH != 0:
+    train_steps += 1
+
+valid_steps = len(test_x) // BATCH
+if len(test_x) % BATCH != 0:
+    valid_steps += 1
+
+
+train_dataset = tf_dataset(train_x, train_y, batch=BATCH)
+valid_dataset = tf_dataset(test_x, test_y, batch=BATCH)
+
+model.fit(
+    train_dataset,
+    validation_data=valid_dataset,
+    epochs=EPOCHS,
+    steps_per_epoch=train_steps,
+    validation_steps=valid_steps,
+    callbacks=callbacks
+)
