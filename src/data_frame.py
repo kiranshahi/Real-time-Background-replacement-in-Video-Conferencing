@@ -43,7 +43,7 @@ def preprocess(image_path, mask_path):
     return image, mask
 
 
-def tf_dataset(images, masks, batch=4):
+def tf_dataset(images, masks, batch=2):
     dataset = tf.data.Dataset.from_tensor_slices((images, masks))
     dataset = dataset.map(preprocess)
     dataset = dataset.batch(batch, drop_remainder=True)
@@ -68,7 +68,8 @@ def image_seq(images):
 
 
 def get_data(train_df, test_df, frame_size):
-    seq_size=frame_size
+    global seq_size
+    seq_size = frame_size
     train_dataset = tf_dataset(image_seq(train_df['image'].tolist()), image_seq(train_df['mask'].tolist()))
     test_dataset = tf_dataset(image_seq(test_df['image'].tolist()), image_seq(test_df['mask'].tolist()))
     return train_dataset, test_dataset

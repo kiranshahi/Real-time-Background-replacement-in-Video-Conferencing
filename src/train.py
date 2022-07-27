@@ -6,7 +6,7 @@ import network as net
 from data_frame import get_data as df_get_data
 from data_image import get_data as di_get_data
 
-EPOCHS = 100
+EPOCHS = 10
 BATCH = 2
 
 
@@ -14,7 +14,8 @@ def get_callback(checkpoint_path):
     csv_path = "resnet_data_aug_val.csv"
 
     callbacks = [
-        ModelCheckpoint(filepath=checkpoint_path + '/model.h5', monitor="loss", verbose=1, save_best_only=True),
+        ModelCheckpoint(filepath='/home/kiran_shahi/dissertation/model/' + checkpoint_path + 'model.h5', monitor="loss",
+                        verbose=1, save_best_only=True),
         ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
         CSVLogger(csv_path),
         EarlyStopping(monitor='loss', patience=10, restore_best_weights=True)
@@ -39,16 +40,16 @@ def call_train():
         if count != 2:
             train_df = pd.read_csv("/home/kiran_shahi/dissertation/csv_data/" + train_set[count])
             valid_df = pd.read_csv("/home/kiran_shahi/dissertation/csv_data/" + valid_set[count])
-            train_dataset, valid_dataset = df_get_data(train_df, valid_df, frame_size=30)
+            train_dataset, valid_dataset = df_get_data(train_df, valid_df, frame_size=15)
         else:
             train_dataset, valid_dataset = di_get_data()
 
         if count == 0:
             saved_model = None
         else:
-            saved_model = 'Set' + count + '/model.h5'
+            saved_model = 'Set' + str(count) + '/model.h5'
 
-        train_model(train_dataset, valid_dataset, 'Set' + count + 1, saved_model)
+        train_model(train_dataset, valid_dataset, 'Set' + str(count + 1), saved_model)
 
 
 call_train()
