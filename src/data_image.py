@@ -6,8 +6,8 @@ import tensorflow as tf
 
 
 def load_data():
-    train_path = '../input/bg-small/set3/set3/train'
-    test_path = '../input/human-segmentation/new_data/test'
+    train_path = '/home/kiran_shahi/dissertation/old_dataset/new_data/train'
+    test_path = '/home/kiran_shahi/dissertation/old_dataset/new_data/test'
 
     train_x = sorted(glob(os.path.join(train_path, "image/*")))
     train_y = sorted(glob(os.path.join(train_path, "mask/*")))
