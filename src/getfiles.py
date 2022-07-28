@@ -24,13 +24,13 @@ def get_files(file_dir):
 
 
 def save_csv(in_path, out_file):
-    if not os.path.exists("../csv_data"):
-        os.makedirs("../csv_data")
+    if not os.path.exists("/home/kiran_shahi/dissertation/csv_data"):
+        os.makedirs("/home/kiran_shahi/dissertation/csv_data")
 
     image_list = get_files(os.path.join(in_path, 'image'))
     mask_list = get_files(os.path.join(in_path, 'alpha'))
 
-    out_file = os.path.join("../csv_data", out_file)
+    out_file = os.path.join("/home/kiran_shahi/dissertation/csv_data", out_file)
     df = pd.DataFrame({'image': image_list, 'mask': mask_list})
     df.to_csv(out_file, index=False)
 
