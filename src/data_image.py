@@ -29,7 +29,6 @@ def read_image(images_path):
 def read_mask(masks_path):
     x = cv2.imread(masks_path, cv2.IMREAD_GRAYSCALE)
     x = cv2.resize(x, (256, 256))
-    x = x / 255.0
     x = x.astype(np.float32)
     x = np.expand_dims(x, axis=-1)
     x = np.expand_dims(x, axis=0)
@@ -57,8 +56,8 @@ def tf_dataset(images, masks, batch=8):
     return dataset
 
 
-def get_data():
+def get_data(batch):
     (train_x, train_y), (test_x, test_y) = load_data()
-    train_dataset = tf_dataset(train_x, train_y, batch=4)
-    valid_dataset = tf_dataset(test_x, test_y, batch=4)
+    train_dataset = tf_dataset(train_x, train_y, batch=batch)
+    valid_dataset = tf_dataset(test_x, test_y, batch=batch)
     return train_dataset, valid_dataset

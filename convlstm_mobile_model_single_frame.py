@@ -1,11 +1,13 @@
+import os
+from glob import glob
+
 import cv2
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.applications import MobileNetV3Large
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint, CSVLogger
-from tensorflow.keras.layers import Add, ReLU, Conv2DTranspose, Concatenate, Dropout, concatenate
-from tensorflow.keras.layers import Input, Conv2D, Activation, BatchNormalization, UpSampling2D, AveragePooling2D, Reshape, ConvLSTM2D
+from tensorflow.keras.layers import Dropout, concatenate
+from tensorflow.keras.layers import Input, Conv2D, Activation, BatchNormalization, UpSampling2D, Reshape, ConvLSTM2D
 from tensorflow.keras.models import Model
 
 
@@ -73,34 +75,37 @@ def get_model():
     # Output
     outputs = output_block(d4)
     outputs = Conv2D(1, (1, 1), 1, 'same', activation='sigmoid')(outputs)
+    model = Model(inputs, outputs)
+    model.compile(
+        loss="binary_crossentropy",
+        optimizer=tf.keras.optimizers.Adam(LR),
+        metrics=[
+            tf.keras.metrics.MeanIoU(num_classes=2),
+            tf.keras.metrics.Recall(),
+            tf.keras.metrics.Precision()
+        ])
 
-    return Model(inputs, outputs)
+    return model
 
 
 # Hyperparameters
 IMAGE_SIZE = 560
 EPOCHS = 150
-BATCH = 30
+BATCH = 8
 LR = 1e-4
-model_path = "mobilev3_Convlstm.h5"
-csv_path = "mobilev3_Convlstm.csv"
 
-model = get_model()
-model.compile(
-    loss="binary_crossentropy",
-    optimizer=tf.keras.optimizers.Adam(LR),
-    metrics=[
-        tf.keras.metrics.MeanIoU(num_classes=2),
-        tf.keras.metrics.Recall(),
-        tf.keras.metrics.Precision()
-    ])
 
-callbacks = [
-    ModelCheckpoint(model_path, monitor="loss", verbose=1),
-    ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
-    CSVLogger(csv_path),
-    EarlyStopping(monitor='loss', patience=10, restore_best_weights=False)
-]
+# model = get_model()
+def get_callback():
+    model_path = "mobilev3_Convlstm.h5"
+    csv_path = "mobilev3_Convlstm.csv"
+    callbacks = [
+        ModelCheckpoint(model_path, monitor="loss", verbose=1),
+        ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
+        CSVLogger(csv_path),
+        EarlyStopping(monitor='loss', patience=10, restore_best_weights=False)
+    ]
+    return callbacks
 
 
 def read_image(path):
@@ -143,7 +148,20 @@ def tf_dataset(images, masks, batch=30):
     return dataset
 
 
-ds = pd.read_csv("image.csv")
-train_dataset = tf_dataset(ds['image'].tolist(), ds['mask'].tolist(), batch=BATCH)
+def load_data():
+    train_path = '/home/kiran_shahi/dissertation/old_dataset/new_data/train'
+    test_path = '/home/kiran_shahi/dissertation/old_dataset/new_data/test'
 
-model.fit(train_dataset, epochs=EPOCHS, callbacks=callbacks)
+    train_x = sorted(glob(os.path.join(train_path, "image/*")))
+    train_y = sorted(glob(os.path.join(train_path, "mask/*")))
+
+    test_x = sorted(glob(os.path.join(test_path, "image/*")))
+    test_y = sorted(glob(os.path.join(test_path, "mask/*")))
+    return (train_x, train_y), (test_x, test_y)
+
+
+def fit_model():
+    (train_x, train_y), (test_x, test_y) = load_data()
+    train_dataset = tf_dataset(train_x, train_y, batch=4)
+    valid_dataset = tf_dataset(test_x, test_y, batch=4)
+    model.fit(train_dataset, validation_data=valid_dataset, epochs=EPOCHS, callbacks=callbacks, batch_size=BATCH)
