@@ -5,6 +5,7 @@ from tensorflow.keras.layers import ConvLSTM2D, BatchNormalization, Activation, 
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import ResNet50
 
+from metrics import mad
 
 LR = 1e-4
 
@@ -55,6 +56,7 @@ def resnet_unet():
     model.compile(loss="binary_crossentropy",
                   optimizer=tf.keras.optimizers.Adam(LR),
                   metrics=[
+                      mad,
                       tf.keras.metrics.MeanSquaredError(),
                       tf.keras.metrics.MeanIoU(num_classes=2),
                       tf.keras.metrics.Recall(),
