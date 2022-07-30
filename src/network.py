@@ -55,6 +55,7 @@ def resnet_unet():
     model.compile(loss="binary_crossentropy",
                   optimizer=tf.keras.optimizers.Adam(LR),
                   metrics=[
+                      tf.keras.metrics.MeanSquaredError(),
                       tf.keras.metrics.MeanIoU(num_classes=2),
                       tf.keras.metrics.Recall(),
                       tf.keras.metrics.Precision()
