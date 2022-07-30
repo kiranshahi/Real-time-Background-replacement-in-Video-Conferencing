@@ -6,7 +6,11 @@ import network as net
 from data_frame import get_data as df_get_data
 from data_image import get_data as di_get_data
 
-EPOCHS = 30
+from tensorflow.keras.utils import CustomObjectScope
+
+from metrics import mad
+
+EPOCHS = 100
 BATCH = 2
 
 root_path = '/home/kiran_shahi/dissertation/'
@@ -18,16 +22,17 @@ def get_callback(checkpoint_path):
     callbacks = [
         ModelCheckpoint(filepath=root_path + 'model/' + checkpoint_path + '_model.h5', monitor="val_loss",
                         verbose=1, save_best_only=True),
-        ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=4),
         CSVLogger(csv_path),
-        EarlyStopping(monitor='loss', patience=10, restore_best_weights=True)
+        EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     ]
     return callbacks
 
 
 def train_model(train_dataset, valid_dataset, checkpoint_path, batch_size, saved_model=None):
     if saved_model is not None:
-        model = tf.keras.models.load_model(saved_model)
+        with CustomObjectScope({'mad': mad}):
+            model = tf.keras.models.load_model(saved_model)
     else:
         model = net.resnet_unet()
     callbacks = get_callback(checkpoint_path)
