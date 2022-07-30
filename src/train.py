@@ -9,13 +9,14 @@ from data_image import get_data as di_get_data
 EPOCHS = 30
 BATCH = 2
 
+root_path = '/home/kiran_shahi/dissertation/'
+
 
 def get_callback(checkpoint_path):
-    csv_path = '/home/kiran_shahi/dissertation/log' + checkpoint_path + "_resnet_data_aug_val.csv"
+    csv_path = root_path + 'log' + checkpoint_path + "_resnet_data_aug_val.csv"
 
     callbacks = [
-        ModelCheckpoint(filepath='/home/kiran_shahi/dissertation/model/' + checkpoint_path + '_model.h5',
-                        monitor="loss",
+        ModelCheckpoint(filepath=root_path + 'model/' + checkpoint_path + '_model.h5', monitor="val_loss",
                         verbose=1, save_best_only=True),
         ReduceLROnPlateau(monitor='loss', factor=0.1, patience=4),
         CSVLogger(csv_path),
@@ -38,15 +39,13 @@ def call_train():
     valid_set = ['set1_valid.csv', 'set2_valid.csv']
 
     for count in range(3):
-
         if count == 0:
             saved_model = None
         else:
-            saved_model = '/home/kiran_shahi/dissertation/model/Set' + str(count) + '_model.h5'
-
+            saved_model = root_path + 'model/Set' + str(count) + '_model.h5'
         if count != 2:
-            train_df = pd.read_csv("/home/kiran_shahi/dissertation/csv_data/" + train_set[count])
-            valid_df = pd.read_csv("/home/kiran_shahi/dissertation/csv_data/" + valid_set[count])
+            train_df = pd.read_csv(root_path + "csv_data/" + train_set[count])
+            valid_df = pd.read_csv(root_path + "/csv_data/" + valid_set[count])
             train_dataset, valid_dataset = df_get_data(train_df, valid_df, frame_size=15)
             train_model(train_dataset, valid_dataset, 'Set' + str(count + 1), batch_size=2, saved_model=saved_model)
         else:
