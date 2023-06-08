@@ -1,4 +1,5 @@
 ### Deep learning for Real Time Background Replacement of Video
+---
 
 #### Abstract: 
 
@@ -7,7 +8,7 @@ Background replacement is one of the most used features in video conferencing ap
 #### Result
 ![Result on Person segmentation dataset.](result/Person-Segmentation/result.jpg)
 
-*Results on the Kaggle Person Segmentation dataset.*
+*Results on the Kaggle Person Segmentation dataset[^1].*
 
 #### How to Cite
 ```
@@ -19,3 +20,4 @@ Background replacement is one of the most used features in video conferencing ap
   journal = {IJNDI}
 }
 ```
+[^1]: https://www.kaggle.com/datasets/nikhilroxtomar/person-segmentation
