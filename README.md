@@ -12,12 +12,17 @@ Background replacement is one of the most used features in video conferencing ap
 
 #### How to Cite
 ```
-@article{shahi_background,
-  author = {Shahi, Kiran and Li, Yongmin},
-  title = {Background Replacement in Video Conferencing},
+@article{Shahi_Li_2023, 
+  title={Background replacement in video conferencing},
+  volume={2},
+  DOI={10.53941/ijndi.2023.100004},
+  number={2},
+  journal={International Journal of Network Dynamics and Intelligence}, 
+  author={Shahi, Kiran and Li, Yongmin}, 
+  year={2023}, 
+  month={Jun},
   doi = {https://doi.org/10.53941/ijndi.2023.100004},
-  url = {https://www.sciltp.com/journals/ijndi/issue18-paper256.html},
-  journal = {IJNDI}
-}
+  url = {https://www.sciltp.com/journals/ijndi/issue18-paper256.html}
+  } 
 ```
 [^1]: https://www.kaggle.com/datasets/nikhilroxtomar/person-segmentation
