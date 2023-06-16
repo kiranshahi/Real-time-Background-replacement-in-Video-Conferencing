@@ -21,7 +21,6 @@ Background replacement is one of the most used features in video conferencing ap
   author={Shahi, Kiran and Li, Yongmin}, 
   year={2023}, 
   month={Jun},
-  doi = {https://doi.org/10.53941/ijndi.2023.100004},
   url = {https://www.sciltp.com/journals/ijndi/issue18-paper256.html}
   } 
 ```
